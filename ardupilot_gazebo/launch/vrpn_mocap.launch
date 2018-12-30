@@ -1,0 +1,65 @@
+<launch>
+    <!-- vim: set ft=xml noet : -->
+    <!-- Sets up a mavlink connection with the SITL ardupilot, and streams pose information
+         as if there were an optitrack motion capture system publishing to /Robot_1/pose -->
+
+    <arg name="fcu_url" default="udp://0.0.0.0:14550@" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    <arg name="fcu_protocol" default="v1.0" />
+
+    <arg name="server" default="192.168.0.20"/>
+
+    <include file="$(find mavros)/launch/node.launch">
+        <arg name="pluginlists_yaml" value="$(find ardupilot_gazebo)/launch/pluginlists.yaml" />
+        <arg name="config_yaml" value="$(find ardupilot_gazebo)/launch/my_config.yaml" />
+
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <arg name="gcs_url" value="$(arg gcs_url)" />
+        <arg name="tgt_system" value="$(arg tgt_system)" />
+        <arg name="tgt_component" value="$(arg tgt_component)" />
+        <arg name="log_output" value="$(arg log_output)" />
+        <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+    </include>
+
+    <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+    <rosparam subst_value="true">
+      server: $(arg server)
+      port: 3883
+
+      update_frequency: 100.0
+      frame_id: map
+
+      # Use the VRPN server's time, or the client's ROS time.
+      use_server_time: false
+      broadcast_tf: true
+
+      # Must either specify refresh frequency > 0.0, or a list of trackers to create
+      refresh_tracker_frequency: 1.0
+      #trackers:
+      #- FirstTracker
+      #- SecondTracker
+    </rosparam>
+    </node>
+    <node pkg="ardupilot_gazebo" type="vrpn_mocap.py" name="pose_republisher" output="screen" />
+
+    <node
+        pkg="joy"
+        type="joy_node"
+        name="joy_node"
+        output="screen">
+    </node>
+
+    <node
+        pkg="mavros"
+        type="mavteleop"
+        name="mavteleop"
+        args="-pos"
+        output="screen">
+    </node>
+
+
+
+</launch>

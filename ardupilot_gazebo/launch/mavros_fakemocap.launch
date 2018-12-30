@@ -1,0 +1,34 @@
+<launch>
+    <!-- vim: set ft=xml noet : -->
+    <!-- Sets up a mavlink connection with the SITL ardupilot, and streams pose information
+         as if there were an optitrack motion capture system publishing to /Robot_1/pose -->
+
+    <arg name="fcu_url" default="udp://0.0.0.0:14550@" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    <arg name="fcu_protocol" default="v1.0" />
+
+    <include file="$(find mavros)/launch/node.launch">
+        <arg name="pluginlists_yaml" value="$(find ardupilot_gazebo)/launch/pluginlists.yaml" />
+        <arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
+
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <arg name="gcs_url" value="$(arg gcs_url)" />
+        <arg name="tgt_system" value="$(arg tgt_system)" />
+        <arg name="tgt_component" value="$(arg tgt_component)" />
+        <arg name="log_output" value="$(arg log_output)" />
+        <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+    </include>
+
+    <node pkg="ardupilot_gazebo" type="test.py" name="pose_republisher" output="screen" />
+
+    <node
+        pkg="ardupilot_gazebo"
+        type="set_origin.py"
+        name="origin_publisher"
+        output="screen">
+    </node>
+
+</launch>

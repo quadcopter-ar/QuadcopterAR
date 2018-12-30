@@ -1,0 +1,39 @@
+<launch>
+    <!-- vim: set ft=xml noet : -->
+    <!-- Sets up a mavlink connection with the SITL ardupilot, and streams pose information
+         as if there were an optitrack motion capture system publishing to /Robot_1/pose -->
+
+    <arg name="fcu_url" default="udp://127.0.0.1:14551@14555" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+
+    <include file="$(find mavros)/launch/node.launch">
+        <arg name="pluginlists_yaml" value="$(find ardupilot_gazebo)/launch/pluginlists.yaml" />
+        <arg name="config_yaml" value="$(find ardupilot_gazebo)/launch/apm_config.yaml" />
+
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <arg name="gcs_url" value="$(arg gcs_url)" />
+        <arg name="tgt_system" value="$(arg tgt_system)" />
+        <arg name="tgt_component" value="$(arg tgt_component)" />
+        <arg name="log_output" value="$(arg log_output)" />
+    </include>
+
+    <!-- Publish true pose to Robot_1/pose -->
+    <node pkg="ardupilot_gazebo" type="simulate_optitrack.py" name="fake_mocap" output="screen" />
+
+    <!-- Republish this pose to /mavros/mocap/pose, which will cause mavros to send an
+         ATT_POS_MOCAP message to the FCU. This script also resets timestamps so the time
+         matches that of the FCU -->
+    <node pkg="ardupilot_gazebo" type="pose_republisher.py" args="/Robot_1/pose /mavros/mocap/pose" name="pose_republisher" output="screen" />
+
+    <!-- Set the home position and GPS origin -->
+    <node
+        pkg="ardupilot_gazebo"
+        type="set_origin.py"
+        name="origin_publisher"
+        output="screen">
+    </node>
+
+</launch>
