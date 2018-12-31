@@ -1,0 +1,3 @@
+[submodule "controls/ardupilot_gazebo"]
+	path = controls/ardupilot_gazebo
+	url = https://github.com/JCBreath/ardupilot_gazebo.git
