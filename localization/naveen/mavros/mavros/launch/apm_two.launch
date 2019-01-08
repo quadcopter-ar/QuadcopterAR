@@ -1,0 +1,40 @@
+<launch>
+	<!-- vim: set ft=xml noet : -->
+	<!-- example launch script for ArduPilotMega based FCU's -->
+
+	<arg name="fcu_url0" default="udp://:14550@" />
+	<arg name="gcs_url0" default="" />
+	<arg name="tgt_system0" default="1" />
+	<arg name="tgt_component0" default="1" />
+	<arg name="log_output0" default="screen" />
+
+	<arg name="fcu_url1" default="udp://:14580@" />
+	<arg name="gcs_url1" default="" />
+	<arg name="tgt_system1" default="3" />
+	<arg name="tgt_component1" default="1" />
+	<arg name="log_output1" default="screen" />
+
+	<include file="$(find mavros)/launch/node_two.launch">
+		<arg name="pluginlists_yaml" value="$(find mavros)/launch/apm_pluginlists.yaml" />
+		<arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" /> <!-- modify to baselink1 : -->
+
+		<arg name="fcu_url0" value="$(arg fcu_url0)" />
+		<arg name="gcs_url0" value="$(arg gcs_url0)" />
+		<arg name="tgt_system0" value="$(arg tgt_system0)" />
+		<arg name="tgt_component0" value="$(arg tgt_component0)" />
+		<arg name="log_output0" value="$(arg log_output0)" />
+
+		<arg name="fcu_url1" value="$(arg fcu_url1)" />
+		<arg name="gcs_url1" value="$(arg gcs_url1)" />
+		<arg name="tgt_system1" value="$(arg tgt_system1)" />
+		<arg name="tgt_component1" value="$(arg tgt_component1)" />
+		<arg name="log_output1" value="$(arg log_output1)" />
+	</include>
+
+	
+
+	
+
+		
+	
+</launch>

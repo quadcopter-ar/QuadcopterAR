@@ -1,0 +1,48 @@
+!!python/object/new:dynamic_reconfigure.encoding.Config
+dictitems:
+  W_orientation: 0.0
+  X_orientation: 0.0
+  X_position: 0.0
+  Y_orientation: 0.0
+  Y_position: 0.0
+  Z_orientation: 0.0
+  Z_position: 0.0
+  config1: 0.5
+  groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+    dictitems:
+      W_orientation: 0.0
+      X_orientation: 0.0
+      X_position: 0.0
+      Y_orientation: 0.0
+      Y_position: 0.0
+      Z_orientation: 0.0
+      Z_position: 0.0
+      groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+        dictitems:
+          Testgroup: !!python/object/new:dynamic_reconfigure.encoding.Config
+            dictitems:
+              config1: 0.5
+              groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              id: 1
+              name: Testgroup
+              parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              parent: 0
+              state: true
+              type: ''
+            state: []
+        state: []
+      id: 0
+      input_topic: /vrpn_client_node/quad/pose
+      name: Default
+      output_topic: /ground_truth/pose
+      parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      parent: 0
+      state: true
+      type: ''
+    state: []
+  input_topic: /vrpn_client_node/quad/pose
+  output_topic: /ground_truth/pose
+state: []

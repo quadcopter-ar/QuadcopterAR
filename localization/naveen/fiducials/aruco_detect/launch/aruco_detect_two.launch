@@ -1,0 +1,50 @@
+<!-- Run the aruco_detect node -->
+<launch>
+
+  <!-- namespace for camera input -->
+  <arg name="camera0" default="/camera0"/>
+  <arg name="image0" default="image_raw"/>
+  <arg name="transport0" default="compressed"/>
+  <arg name="fiducial_len0" default="0.55"/>
+  <arg name="dictionary0" default="7"/>
+  <arg name="do_pose_estimation0" default="true"/>
+
+    <node ns ="aruco0" pkg="aruco_detect" name="aruco_detect"
+    type="aruco_detect" output="screen" respawn="false">
+    <param name="image_transport" value="$(arg transport0)"/>
+    <param name="publish_images" value="true" />
+    <param name="fiducial_len" value="$(arg fiducial_len0)"/>
+    <param name="dictionary" value="$(arg dictionary0)"/>
+    <param name="do_pose_estimation" value="$(arg do_pose_estimation0)"/>
+    <remap from="/camera/compressed" 
+        to="$(arg camera0)/$(arg image0)/$(arg transport0)"/>
+    <remap from="/camera_info" to="$(arg camera0)/camera_info"/>
+    <remap from="/fiducial_images" to="/fiducial_images0"/>
+    <remap from="/fiducial_transforms" to="/fiducial_transforms0"/>
+    <remap from="/fiducial_vertices" to="/fiducial_vertices0"/>
+  </node>
+
+
+  <arg name="camera1" default="/camera1"/>
+  <arg name="image1" default="image_raw"/>
+  <arg name="transport1" default="compressed"/>
+  <arg name="fiducial_len1" default="0.5334"/>
+  <arg name="dictionary1" default="7"/>
+  <arg name="do_pose_estimation1" default="true"/>
+
+
+  <node ns ="aruco1" pkg="aruco_detect" name="aruco_detect"
+    type="aruco_detect" output="screen" respawn="false">
+    <param name="image_transport" value="$(arg transport1)"/>
+    <param name="publish_images" value="true" />
+    <param name="fiducial_len" value="$(arg fiducial_len1)"/>
+    <param name="dictionary" value="$(arg dictionary1)"/>
+    <param name="do_pose_estimation" value="$(arg do_pose_estimation1)"/>
+    <remap from="/camera/compressed" 
+        to="$(arg camera1)/$(arg image1)/$(arg transport1)"/>
+    <remap from="/camera_info" to="$(arg camera1)/camera_info"/>
+    <remap from="/fiducial_images" to="/fiducial_images1"/>
+    <remap from="/fiducial_transforms" to="/fiducial_transforms1"/>
+    <remap from="/fiducial_vertices" to="/fiducial_vertices1"/>
+  </node>
+</launch>

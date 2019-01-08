@@ -1,0 +1,80 @@
+<!--
+   Run the fiducial_slam node
+-->
+<launch>
+  <arg name="camera0" default="/camera0"/>
+  <arg name="map_frame0" default="map0_fid"/>
+  <arg name="odom_frame0" default=""/>
+  <arg name="base_frame0" default="base_link0_fid"/>
+  <arg name="publish_tf0" default="false"/>
+  <arg name="future_date_transforms0" default="0.0"/>
+  <arg name="publish_6dof_pose0" default="false"/>
+  <arg name="fiducial_len0" default="0.55"/>
+  <arg name="do_pose_estimation0" default="false"/>
+
+  <node ns="fiducial_slam0" type="fiducial_slam0" pkg="fiducial_slam" output="screen" 
+    name="fiducial_slam0">
+    <param name="map_file" value="$(env HOME)/.ros/slam/map0.txt" />
+    <param name="map_frame" value="$(arg map_frame0)" />
+    <param name="odom_frame" value="$(arg odom_frame0)" />
+    <param name="base_frame" value="$(arg base_frame0)" />
+    <param name="future_date_transforms" value="$(arg future_date_transforms0)" />
+    <param name="publish_6dof_pose" value="$(arg publish_6dof_pose0)" />
+    <param name="do_pose_estimation" value="$(arg do_pose_estimation0)"/>
+    <param name="fiducial_len" value="$(arg fiducial_len0)"/>
+    <remap from="/camera_info" to="$(arg camera0)/camera_info"/>
+
+    <remap from="/fiducial_images" to="/fiducial_images0"/>
+    <remap from="/fiducial_transforms" to="/fiducial_transforms0"/>
+    <remap from="/fiducial_vertices" to="/fiducial_vertices0"/>
+
+    <remap from="/fiducial_map" to="/fiducial_map0"/>
+    <remap from="/fiducial_pose" to="/fiducial_pose0"/>
+    <remap from="/fiducials" to="/fiducials0"/>
+    <remap from="/tf" to="/fid_tf0"/>
+    
+
+  </node>
+
+  <arg name="camera1" default="/camera1"/>
+  <arg name="map_frame1" default="map1_fid"/>
+  <arg name="odom_frame1" default=""/>
+  <arg name="base_frame1" default="base_link1_fid"/>
+  <arg name="publish_tf1" default="false"/>
+  <arg name="future_date_transforms1" default="0.0"/>
+  <arg name="publish_6dof_pose1" default="false"/>
+  <arg name="fiducial_len1" default="0.55"/>
+  <arg name="do_pose_estimation1" default="false"/>
+
+  <node ns="fiducial_slam1" type="fiducial_slam1" pkg="fiducial_slam" output="screen" 
+    name="fiducial_slam1">
+    <param name="map_file" value="$(env HOME)/.ros/slam/map1.txt" />
+    <param name="map_frame" value="$(arg map_frame1)" />
+    <param name="odom_frame" value="$(arg odom_frame1)" />
+    <param name="base_frame" value="$(arg base_frame1)" />
+    <param name="future_date_transforms" value="$(arg future_date_transforms1)" />
+    <param name="publish_6dof_pose" value="$(arg publish_6dof_pose1)" />
+    <param name="do_pose_estimation" value="$(arg do_pose_estimation1)"/>
+    <param name="fiducial_len" value="$(arg fiducial_len1)"/>
+    <remap from="/camera_info" to="$(arg camera1)/camera_info"/>
+
+    <remap from="/fiducial_images" to="/fiducial_images1"/>
+    <remap from="/fiducial_transforms" to="/fiducial_transforms1"/>
+    <remap from="/fiducial_vertices" to="/fiducial_vertices1"/>
+
+    <remap from="/fiducial_map" to="/fiducial_map1"/>
+    <remap from="/fiducial_pose" to="/fiducial_pose1"/>
+    <remap from="/fiducials" to="/fiducials1"/>
+    <remap from="/tf" to="/fid_tf1"/>
+    
+
+  </node>
+
+  
+  <node pkg="tf" type="static_transform_publisher" name="baselink0_cv2camera0" args="0.0833 0 -0.0833 -1.5708 0 -1.5708 base_link0_fid camera0 100" > 
+    <remap from="tf" to="fid_tf0"/> 
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="baselink1_cv2camera1" args="0.0833 0 -0.0833 -1.5708 0 -1.5708 base_link1_fid camera1 100" > 
+    <remap from="tf" to="fid_tf1"/> 
+  </node>
+</launch>

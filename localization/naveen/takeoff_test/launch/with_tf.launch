@@ -1,0 +1,10 @@
+  <launch>
+    <!-- solo Node-->
+    
+
+    <node name="solo_tf_broadcaster" pkg="takeoff_test" type="tf_broadcaster.py" respawn="false" output="screen" >
+      <param name="turtle" type="string" value="turtle1" />
+    </node>
+    
+
+  </launch>

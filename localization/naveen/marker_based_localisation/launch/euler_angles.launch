@@ -1,0 +1,27 @@
+<launch>
+<node pkg="marker_based_localisation" type="quat_to_euler.py" name="truth_euler_angles">
+    <remap from="pose"   to="ground_truth/pose"/>
+    <remap from="euler" to="ground_truth/euler"/>
+</node>
+
+<node pkg="marker_based_localisation" type="quat_to_euler.py" name="vision_euler_angles">
+    <remap from="posecov"  to="fiducial_pose"/>
+    <remap from="euler" to="fiducial_pose/euler"/>
+</node>
+
+<node pkg="marker_based_localisation" type="quat_to_euler.py" name="fusion_euler_angles">
+    <remap from="odom"  to="odometry/filtered"/>
+    <remap from="euler" to="odometry/filtered/euler"/>
+</node>
+
+<node pkg="marker_based_localisation" type="quat_to_euler.py" name="imu_euler_angles">
+    <remap from="imu"   to="imu/data"/>
+    <remap from="euler" to="imu/euler"/>
+</node>
+
+<node pkg="marker_based_localisation" type="quat_to_euler.py" name="orbslam_euler_angles">
+    <remap from="odom"   to="/MonoPose"/>
+    <remap from="euler" to="MonoPose/euler"/>
+</node>
+
+</launch>
