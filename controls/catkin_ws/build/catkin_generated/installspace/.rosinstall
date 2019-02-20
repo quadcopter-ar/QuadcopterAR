@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/dronear/QuadcopterAR/controls/catkin_ws/install/setup.sh
