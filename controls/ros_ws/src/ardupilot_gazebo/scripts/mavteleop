@@ -1,0 +1,311 @@
+#!/usr/bin/env python
+# vim:set ts=4 sw=4 et:
+#
+# Copyright 2014 Vladimir Ermakov.
+#
+# This file is part of the mavros package and subject to the license terms
+# in the top-level LICENSE file of the mavros repository.
+# https://github.com/mavlink/mavros/tree/master/LICENSE.md
+
+from __future__ import print_function
+
+import os
+import sys
+import argparse
+import rospy
+import mavros
+
+from tf.transformations import quaternion_from_euler
+from tf.transformations import euler_from_quaternion
+import tf
+from sensor_msgs.msg import Joy
+from std_msgs.msg import Header, Float64
+from geometry_msgs.msg import PoseStamped, TwistStamped, Vector3, Quaternion, Point, PointStamped
+from mavros_msgs.msg import OverrideRCIn
+from mavros import command
+from mavros import setpoint as SP
+from mavros_msgs.srv import CommandBool
+from mavros_msgs.srv import SetMode
+from mavros_msgs.srv import CommandTOL
+
+
+
+def arduino_map(x, inmin, inmax, outmin, outmax):
+    return (x - inmin) * (outmax - outmin) / (inmax - inmin) + outmin
+
+
+class RCChan(object):
+    def __init__(self, name, chan, min_pos=-1.0):
+        self.name = name
+        self.chan = chan
+        self.min = 1000
+        self.max = 2000
+        self.min_pos = min_pos
+
+    def load_param(self):
+        self.chan = rospy.get_param("~rc_map/" + self.name, self.chan)
+        self.min = rospy.get_param("~rc_min/" + self.name, self.min)
+        self.max = rospy.get_param("~rc_max/" + self.name, self.max)
+
+    def calc_us(self, pos):
+        # warn: limit check
+        return arduino_map(pos, self.min_pos, 1.0, self.min, self.max)
+
+class RCMode(object):
+    def __init__( self, name, joy_flags, rc_channel, rc_value ):
+        self.name = name
+        self.joy_flags = joy_flags
+        self.rc_channel = rc_channel
+        self.rc_value = rc_value
+        
+    @staticmethod
+    def load_param(ns='~rc_modes/'):
+        yaml = rospy.get_param(ns)
+        return [ RCMode( name, data['joy_flags'], data['rc_channel'], data['rc_value'] ) 
+            for name,data in yaml.items() ]
+        
+    def is_toggled(self,joy):
+        for btn,flag in self.joy_flags:
+            if joy.buttons[btn] != flag:
+                return False
+        return True
+        
+    def apply_mode(self,joy,rc):
+        if self.is_toggled(joy):
+            rc.channels[self.rc_channel]=self.rc_value
+
+# Mode 2 on Logitech F710 gamepad
+axes_map = {
+    'roll': 1,
+    'pitch': 0,
+    'yaw': 3,
+    'throttle': 4
+}
+
+axes_scale = {
+    'roll': 1.5,
+    'pitch': 1.5,
+    'yaw': 0.05,
+    'throttle': 0.2
+}
+
+# XXX: todo
+button_map = {
+    'arm' : 0,
+    'disarm' : 1,
+    'takeoff': 2,
+    'land': 3,
+    'enable': 4
+}
+
+
+rc_channels = {
+    'roll': RCChan('roll', 0),
+    'pitch': RCChan('pitch', 1),
+    'yaw': RCChan('yaw', 3),
+    'throttle': RCChan('throttle', 2, 0.0)
+}
+
+status = {
+    'takeoff': False,
+    'arm': False
+}
+
+def arm(args, state):
+    try:
+        command.arming(value=state)
+    except rospy.ServiceException as ex:
+        fault(ex)
+
+    if not ret.success:
+        rospy.loginfo("Request failed.")
+    else:
+        rospy.loginfo("Request success.")
+
+
+def load_map(m, n):
+    for k, v in m.items():
+        m[k] = rospy.get_param(n + k, v)
+
+
+def get_axis(j, n):
+    return j.axes[axes_map[n]] * axes_scale[n]
+
+def get_buttons(j, n):
+    return j.buttons[ button_map[n]]
+
+
+px, py, pz, ayaw = 0.0, 0.0, 0.0, 0.0
+current_pos = PoseStamped()
+current_joy = Joy()
+joy_timer = None
+
+def joy_timer_callback(event):
+    global px, py, pz, ayaw, current_pos
+    print(current_joy)
+
+    pos_pub = SP.get_pub_position_local(queue_size=10)
+    listener = tf.TransformListener()
+
+    if current_joy.buttons[7] == 1 and status['takeoff'] == False:
+        print('takeoff')
+        status['takeoff'] = True
+        takeoff()
+        rospy.sleep(5)
+
+    if current_joy.buttons[6] == 1 and status['takeoff'] == True:
+        print('land')
+        status['takeoff'] = False
+        land()
+        rospy.sleep(5)
+    #print(joy)
+    
+    # get axes normalized to -1.0..+1.0 RPY
+    roll = get_axis(current_joy, 'roll')
+    pitch = -get_axis(current_joy, 'pitch')
+    yaw = get_axis(current_joy, 'yaw')
+    throttle = get_axis(current_joy, 'throttle')
+    trans = None
+
+    listener.waitForTransform('/solo', '/map', rospy.Time(0), rospy.Duration(10.0))
+
+    while not trans:
+        (trans,rot) = listener.lookupTransform('/map', '/solo', rospy.Time(0))
+
+    # Solo coordinate is (0,0,0) in /solo
+
+    solo_point = PointStamped()
+    solo_point.header.frame_id = "solo"
+    solo_point.header.stamp = rospy.Time(0)
+    solo_point.point.x = pitch
+    solo_point.point.y = roll
+    solo_point.point.z = throttle
+
+    map_point = listener.transformPoint('map', solo_point)
+
+    # TODO: need integrate by time, joy_cb() called with variable frequency
+    # px = current_pos.position.x + pitch
+    # py = current_pos.position.y + roll
+    # pz = current_pos.position.z + throttle
+    ayaw += yaw
+
+    px = map_point.point.x
+    py = map_point.point.y
+    pz = map_point.point.z
+
+
+    # # Virtual Fence
+    # if px > 5:
+    #     px = 5
+    # elif px < -5:
+    #     px = -5
+    # if py > 5:
+    #     py = 5
+    # elif py < -5:
+    #     py = -5
+
+
+    print("RPYT: %f, %f, %f, %f" % (roll, pitch, yaw, throttle))
+    print("Point(%f %f %f)" % (px, py, pz))
+
+    # Based on QGC UAS joystickinput_settargets branch
+    pose = PoseStamped(header=Header(stamp=rospy.get_rostime(),frame_id="map"))
+    pose.pose.position = Point(x=px, y=py, z=pz)
+    q = quaternion_from_euler(0, 0, ayaw)
+    pose.pose.orientation = Quaternion(*q)
+    #display('%s,%s,%s' % (pose.pose.position.x, pose.pose.position.y, pose.pose.position.z))
+    pos_pub.publish(pose)
+
+def position_setpoint_control():
+    rospy.loginfo("MAV-Teleop: Position setpoint control type.")
+
+    load_map(axes_map, '~axes_map/')
+    load_map(axes_scale, '~axes_scale/')
+    load_map(button_map, '~button_map/')
+
+    
+
+    def joy_callback(joy):
+        global current_joy, joy_timer
+        current_joy = joy
+        if joy_timer is None:
+            joy_timer = rospy.Timer(rospy.Duration(0.05), joy_timer_callback)
+        
+
+    def current_pos_cb(msg):
+        global current_pos
+        current_pos = msg.pose
+        current_tf_br = tf.TransformBroadcaster()
+        position = (msg.pose.position.x,msg.pose.position.y,msg.pose.position.z)
+        quaternion = (current_pos.orientation.x,current_pos.orientation.y,current_pos.orientation.z,current_pos.orientation.w)
+        euler = euler_from_quaternion(quaternion)
+
+        current_tf_br.sendTransform(position,
+            quaternion_from_euler(0,0,euler[2]),
+            rospy.Time.now(),
+            "solo",
+            "map")
+
+    current_pos_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, current_pos_cb)
+    current_joy_sub = rospy.Subscriber("joy", Joy, joy_callback)
+
+    rospy.spin()
+
+mode_service = None
+arm_service = None
+takeoff_service = None
+
+def arm():
+    """
+    Arm the throttle
+    """
+    return arm_service(True)
+    
+def disarm():
+    """
+    Disarm the throttle
+    """
+    return arm_service(False)
+
+def takeoff(height=1.5):
+    """
+    Arm the throttle, takeoff to a few feet, and set to guided mode
+    """
+    # Set to stabilize mode for arming
+    # mode_resp = mode_service(custom_mode="0")
+    # Set to guided mode 
+    mode_resp = mode_service(custom_mode="4")
+    arm()
+
+    # Takeoff
+    takeoff_resp = takeoff_service(altitude=height)
+
+    return takeoff_resp
+
+def land():
+    """
+    Set in LAND mode, which should cause the UAV to descend directly, 
+    land, and disarm. 
+    """
+    resp = mode_service(custom_mode="9")
+    #disarm()
+
+def display(str):
+    os.write(1, "\r%s" % str)
+    sys.stdout.flush()
+
+def main():
+    global mode_service, arm_service, takeoff_service
+    mode_service = rospy.ServiceProxy('/mavros/set_mode', SetMode)
+    arm_service = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
+    takeoff_service = rospy.ServiceProxy('/mavros/cmd/takeoff', CommandTOL)
+
+    rospy.init_node("mavteleop")
+    mavros.set_namespace(mavros.DEFAULT_NAMESPACE)
+
+    position_setpoint_control()
+
+
+if __name__ == '__main__':
+    main()
+

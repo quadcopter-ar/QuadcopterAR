@@ -2,4 +2,4 @@
 source_root_dir = "/home/dronear/QuadcopterAR/controls/catkin_ws/src"
 whitelisted_packages = "".split(';') if "" != "" else []
 blacklisted_packages = "".split(';') if "" != "" else []
-underlay_workspaces = "/home/dronear/catkin_ws/devel;/opt/ros/kinetic".split(';') if "/home/dronear/catkin_ws/devel;/opt/ros/kinetic" != "" else []
+underlay_workspaces = "/home/dronear/QuadcopterAR/controls/catkin_ws/devel;/opt/ros/kinetic".split(';') if "/home/dronear/QuadcopterAR/controls/catkin_ws/devel;/opt/ros/kinetic" != "" else []

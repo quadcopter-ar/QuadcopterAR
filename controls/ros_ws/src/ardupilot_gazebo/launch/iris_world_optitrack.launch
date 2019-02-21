@@ -1,0 +1,32 @@
+<launch>
+    <!-- Launch the Gazebo Simulation -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find ardupilot_gazebo)/gazebo_worlds/iris_ardupilot.world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable -->
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/> <!-- Inert - see gazebo_ros_pkgs issue #491 -->
+        <arg name="recording" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <!-- Launch a mavros instance to connect to the simulated copter -->
+    <include file="$(find ardupilot_gazebo)/launch/spawn_mavros_instance.launch"></include>
+
+    <!-- Publish true pose to Robot_1/pose -->
+    <node pkg="ardupilot_gazebo" type="simulate_optitrack.py" name="fake_mocap" output="screen" />
+
+    <!-- Republish this pose to /mavros/mocap/pose, which will cause mavros to send an
+         ATT_POS_MOCAP message to the FCU. This script also resets timestamps so the time
+         matches that of the FCU -->
+    <node pkg="ardupilot_gazebo" type="pose_republisher.py" args="/Robot_1/pose /mavros/mocap/pose" name="pose_republisher" output="screen" />
+
+    <!-- Set the home position and GPS origin -->
+    <node
+        pkg="ardupilot_gazebo"
+        type="set_origin.py"
+        name="origin_publisher"
+        output="screen">
+    </node>
+
+</launch>
