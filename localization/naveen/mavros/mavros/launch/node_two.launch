@@ -1,0 +1,47 @@
+<launch>
+	<!-- vim: set ft=xml noet : -->
+	<!-- base node launch file-->
+
+	<arg name="pluginlists_yaml" />
+	<arg name="config_yaml" />
+	
+	<arg name="fcu_url0" />
+	<arg name="gcs_url0" />
+	<arg name="tgt_system0" />
+	<arg name="tgt_component0" />
+	<arg name="log_output0" default="screen" />
+
+	<arg name="fcu_url1" />
+	<arg name="gcs_url1" />
+	<arg name="tgt_system1" />
+	<arg name="tgt_component1" />
+	<arg name="log_output1" default="screen" />
+
+	<node pkg="mavros" type="mavros_node" name="mavros0" required="true" clear_params="true" output="$(arg log_output0)">
+		<param name="fcu_url" value="$(arg fcu_url0)" />
+		<param name="gcs_url" value="$(arg gcs_url0)" />
+		<param name="target_system_id" value="$(arg tgt_system0)" />
+		<param name="target_component_id" value="$(arg tgt_component0)" />
+
+		<!-- load blacklist, config -->
+		<rosparam command="load" file="$(arg pluginlists_yaml)" />
+		<rosparam command="load" file="$(arg config_yaml)" />
+
+		<remap from="/tf" to="/tf0"/>
+    	<remap from="/tf_static" to="/tf_static0"/>
+	</node>
+
+	<node pkg="mavros" type="mavros_node" name="mavros1" required="true" clear_params="true" output="$(arg log_output1)">
+		<param name="fcu_url" value="$(arg fcu_url1)" />
+		<param name="gcs_url" value="$(arg gcs_url1)" />
+		<param name="target_system_id" value="$(arg tgt_system1)" />
+		<param name="target_component_id" value="$(arg tgt_component1)" />
+
+		<!-- load blacklist, config -->
+		<rosparam command="load" file="$(arg pluginlists_yaml)" />
+		<rosparam command="load" file="$(arg config_yaml)" />
+
+		<remap from="/tf" to="/tf1"/>
+    	<remap from="/tf_static" to="/tf_static1"/>
+	</node>
+</launch>

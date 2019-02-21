@@ -1,0 +1,16 @@
+\subsubsection usage Usage
+\verbatim
+<node name="pose_adjuster" pkg="marker_based_localisation" type="pose_adjuster">
+  <param name="input_topic" type="str" value="/vrpn_client_node/Solo/pose" />
+  <param name="output_topic" type="str" value="/ground_truth/pose" />
+  <param name="X_position" type="double" value="0.0" />
+  <param name="Y_position" type="double" value="0.0" />
+  <param name="Z_position" type="double" value="0.0" />
+  <param name="X_orientation" type="double" value="0.0" />
+  <param name="Y_orientation" type="double" value="0.0" />
+  <param name="Z_orientation" type="double" value="0.0" />
+  <param name="W_orientation" type="double" value="0.0" />
+  <param name="config1" type="double" value="0.5" />
+</node>
+\endverbatim
+

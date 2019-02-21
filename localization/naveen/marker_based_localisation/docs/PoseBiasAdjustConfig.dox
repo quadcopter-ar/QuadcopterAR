@@ -1,0 +1,15 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~input_topic" : \b [str] Original pose topic min: , default: /vrpn_client_node/Solo/pose, max: 
+- \b "~output_topic" : \b [str] Name of new adjusted pose topic min: , default: /ground_truth/pose, max: 
+- \b "~X_position" : \b [double] add or subtract x value from current topic min: -inf, default: 0.0, max: inf
+- \b "~Y_position" : \b [double] add or subtract y value from current topic min: -inf, default: 0.0, max: inf
+- \b "~Z_position" : \b [double] add or subtract z value from current topic min: -inf, default: 0.0, max: inf
+- \b "~X_orientation" : \b [double] add or subtract x quaternion value from current min: -inf, default: 0.0, max: inf
+- \b "~Y_orientation" : \b [double] add or subtract y quaternion value from current min: -inf, default: 0.0, max: inf
+- \b "~Z_orientation" : \b [double] add or subtract z quaternion value from current min: -inf, default: 0.0, max: inf
+- \b "~W_orientation" : \b [double] add or subtract w quaternion value from current min: -inf, default: 0.0, max: inf
+- \b "~config1" : \b [double] A dummy value min: 0.0, default: 0.5, max: 1.0
+

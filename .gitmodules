@@ -1,0 +1,9 @@
+[submodule "controls/ardupilot_gazebo"]
+	path = controls/ardupilot_gazebo
+	url = https://github.com/JCBreath/ardupilot_gazebo.git
+[submodule "localization/ORB_SLAM2_QUADCOPTER_AR"]
+	path = localization/ORB_SLAM2_QUADCOPTER_AR
+	url = https://github.com/nehalagrawal/ORB_SLAM2_QUADCOPTER_AR.git
+[submodule "localization/ORB_SLAM_SAVE_LOAD_MAP"]
+	path = localization/ORB_SLAM_SAVE_LOAD_MAP
+	url = https://github.com/nehalagrawal/ORB_SLAM_SAVE_LOAD_MAP.git
