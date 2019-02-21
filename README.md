@@ -1,10 +1,9 @@
 # QuadcopterAR
 
-<<<<<<< HEAD
-See branch "integration" for most up-to-date content. Will merge to master when current code for all project components is uploaded.
+**See Wiki for help.**
 
-See Wiki for help.
-=======
+
+
 ## Clone the repo:
 
 `git clone https://github.com/mind111/QuadcopterAR.git`
@@ -12,8 +11,6 @@ See Wiki for help.
 `cd QuadcopterAR`
 
 `git submodule update --init --recursive`
-
-
 
 
 
