@@ -1,2 +1,0 @@
-ardupilot_gazebo
--DCATKIN_DEVEL_PREFIX=/home/dronear/QuadcopterAR/controls/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/dronear/QuadcopterAR/controls/catkin_ws/install -G Unix Makefiles

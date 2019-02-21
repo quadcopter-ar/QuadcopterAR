@@ -1,9 +1,0 @@
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/install.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/list_install_components.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/rebuild_cache.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/ArduCopterIRLockPlugin.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/ArduPilotPlugin.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/edit_cache.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/ArduCopterPlugin.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/install/local.dir
-/home/dronear/QuadcopterAR/controls/catkin_ws/build_isolated/ardupilot_gazebo/CMakeFiles/install/strip.dir
