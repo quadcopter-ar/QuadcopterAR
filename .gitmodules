@@ -7,3 +7,6 @@
 [submodule "localization/ORB_SLAM_SAVE_LOAD_MAP"]
 	path = localization/ORB_SLAM_SAVE_LOAD_MAP
 	url = https://github.com/nehalagrawal/ORB_SLAM_SAVE_LOAD_MAP.git
+[submodule "controls/ardupilot"]
+	path = controls/ardupilot
+	url = https://github.com/quadcopter-ar/ardupilot.git
