@@ -1,7 +1,6 @@
 <launch>
-    <!-- Launch a Gazebo simulation with two iris drones -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" value="$(find ardupilot_gazebo)/gazebo_worlds/iris_ardupilot_multiuav.world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable -->
+        <arg name="world_name" value="$(find ardupilot_gazebo)/gazebo_worlds/iris_ardupilot_multiuav.world"/>
         <arg name="paused" value="false"/>
         <arg name="use_sim_time" value="true"/>
         <arg name="gui" value="true"/>
@@ -10,7 +9,6 @@
         <arg name="debug" value="false"/>
     </include>
 
-    <!-- create a mavros instance for the each UAV in its own namespace -->
     <group ns="uav1">
         <include file="$(find ardupilot_gazebo)/launch/spawn_mavros_instance.launch">
             <arg name="fcu_url" value="udp://127.0.0.1:14551@14555" />
@@ -19,7 +17,6 @@
         </include>
     </group>
 
-    <!-- create a mavros instance for the each UAV in its own namespace -->
     <group ns="uav2">
         <include file="$(find ardupilot_gazebo)/launch/spawn_mavros_instance.launch">
             <arg name="fcu_url" value="udp://127.0.0.1:14561@14565" />

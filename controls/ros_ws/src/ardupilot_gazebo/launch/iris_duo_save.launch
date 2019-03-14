@@ -12,19 +12,33 @@
 
     <!-- create a mavros instance for the each UAV in its own namespace -->
     <group ns="uav1">
-        <include file="$(find ardupilot_gazebo)/launch/spawn_mavros_instance.launch">
-            <arg name="fcu_url" value="udp://127.0.0.1:14551@14555" />
+        <arg name="log_output" default="screen" />
+
+        <include file="$(find mavros)/launch/node.launch">
+            <arg name="pluginlists_yaml" value="$(find mavros)/launch/apm_pluginlists.yaml" />
+            <arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
+
+            <arg name="fcu_url" value="tcp://127.0.0.1:5760" />
+            <arg name="gcs_url" value="udp://127.0.0.1@:14550" />
             <arg name="tgt_system" value="1" />
             <arg name="tgt_component" value="1" />
+            <arg name="log_output" value="$(arg log_output)" />
         </include>
     </group>
 
     <!-- create a mavros instance for the each UAV in its own namespace -->
     <group ns="uav2">
-        <include file="$(find ardupilot_gazebo)/launch/spawn_mavros_instance.launch">
-            <arg name="fcu_url" value="udp://127.0.0.1:14561@14565" />
+        <arg name="log_output" default="screen" />
+
+        <include file="$(find mavros)/launch/node.launch">
+            <arg name="pluginlists_yaml" value="$(find mavros)/launch/apm_pluginlists.yaml" />
+            <arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml" />
+
+            <arg name="fcu_url" value="tcp://127.0.0.1:5770" />
+            <arg name="gcs_url" value="udp://127.0.0.1@:14560" />
             <arg name="tgt_system" value="1" />
             <arg name="tgt_component" value="1" />
+            <arg name="log_output" value="$(arg log_output)" />
         </include>
     </group>
 </launch>
