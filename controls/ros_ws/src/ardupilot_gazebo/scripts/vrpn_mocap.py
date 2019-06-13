@@ -45,6 +45,8 @@ def time_callback(data):
     secs = data.header.stamp.secs
     nsecs = data.header.stamp.nsecs
 
+    print(secs)
+
 def solo_pose_callback(pose):
     global solo_pose
     solo_pose = pose
@@ -54,7 +56,7 @@ def pose_callback(pose):
     Republish the given Pose information on a new topic,
     with timestamps that match the FCU
     """
-    global pose_count
+    global pose_count, secs, nsecs
 
     pose_count += 1
 
@@ -79,6 +81,8 @@ def pose_callback(pose):
     delay_ns = delay_ms*1e6
 
     pose.header.frame_id = 'map'
+
+    print(pose)
 
     if (secs is not None) and (nsecs is not None):
         pose.header.stamp.secs = secs
