@@ -22,17 +22,24 @@ import sys
 # Unity
 position = []
 orientation = []
+uav1_position = [5, 0, 1.5]
+uav1_orientation = [0, 0, 0, 0]
+uav2_position = [-5, 0, 1.5]
+uav2_orientation = [0, 0, 0, 0]
 unity_timer = None
-sp_timer = None
+uav1_sp_timer = None
+uav2_sp_timer = None
 clients = []
 
 # Global variables to keep track of time from the FCU
-secs = None
-nsecs = None
+uav1_secs = None
+uav2_secs = None
 
 pose_count = 0
 solo_pose = None
 sp_pose = None
+uav1_sp_pose = None
+uav2_sp_pose = None
 
 origin_set = False
 
@@ -46,53 +53,60 @@ class fifo(object):
     def read(self):
         return self.buf.pop(0)
 
-def time_callback(data):
+def uav1_time_callback(data):
     """
     Synchronize time of messages we send with the FCU. Extracts the FCU 
     time from a TIMESYNC mavlink message, and uses this to set global variables
     """
-    global secs
-    global nsecs
-    global sp_timer
-    global sp_pose
+    global uav1_secs
+    global uav1_sp_timer
+    global uav1_sp_pose
 
-    if data.header.stamp.secs > secs:
+    if data.header.stamp.secs > uav1_secs:
         set_rate = rospy.ServiceProxy(mavros.get_topic('set_stream_rate'), StreamRate)
-        rate_arg = 15.0
+        rate_arg = 20.0
         try:
             set_rate(stream_id=0, message_rate=rate_arg, on_off=(rate_arg != 0))
         except rospy.ServiceException as ex:
             fault(ex)
+        # try:
+        #     set_message_interval = rospy.ServiceProxy(mavros.get_topic('set_message_interval'), MessageInterval)
+        #     set_message_interval(message_id='local_position', message_rate=100.0)
+        # except rospy.ServiceException as ex:
+        #     fault(ex)
 
-    secs = data.header.stamp.secs
-    nsecs = data.header.stamp.nsecs
+    uav1_secs = data.header.stamp.secs
     
-    if sp_timer is None and len(clients) > 0:
-        sp_pose = PoseStamped(header=Header(stamp=rospy.get_rostime(),frame_id="map"))
-        sp_timer = rospy.Timer(rospy.Duration(0.05), sp_timer_callback)
-    
+    if uav1_sp_timer is None and len(clients) > 0:
+        uav1_sp_pose = PoseStamped(header=Header(stamp=rospy.get_rostime(),frame_id="map"))
+        uav1_sp_timer = rospy.Timer(rospy.Duration(0.5), uav1_sp_timer_callback)
 
-def solo_pose_callback(solo_pose):
-    global position, orientation
-    position[0] = solo_pose.pose.position.x
-    position[1] = solo_pose.pose.position.y
-    position[2] = solo_pose.pose.position.z
-    orientation[0] = solo_pose.pose.orientation.w
-    orientation[1] = solo_pose.pose.orientation.x
-    orientation[2] = solo_pose.pose.orientation.y
-    orientation[3] = solo_pose.pose.orientation.z
+def uav1_pose_callback(solo_pose):
+    global uav1_position, uav1_orientation
+    uav1_position[0] = solo_pose.pose.position.x
+    uav1_position[1] = solo_pose.pose.position.y
+    uav1_position[2] = solo_pose.pose.position.z
+    uav1_orientation[0] = solo_pose.pose.orientation.x
+    uav1_orientation[1] = solo_pose.pose.orientation.y
+    uav1_orientation[2] = solo_pose.pose.orientation.z
+    uav1_orientation[3] = solo_pose.pose.orientation.w
 
+
+# UNITY -> ROS
 class TCPHandler(socketserver.BaseRequestHandler):
     def setup(self):
         print('[INFO] New connection.')
         clients.append(self.request)
+        self.client_index = len(clients)
         #self.request.sendall('')
         #self.feedback_data = json.dumps(pose).encode('UTF-8')
         
-        self.feedback_data = (get_pose_str()).encode('UTF-8')
-        self.request.sendall(self.feedback_data)
+        # self.feedback_data = (get_pose_str()).encode('UTF-8')
+        # self.request.sendall(self.feedback_data)
 
     def handle(self):
+        global uav1_sp_pose, uav2_sp_pose
+
         while True:
             try:
                 self.data = self.request.recv(1024).decode('UTF-8', 'ignore').strip()
@@ -101,22 +115,30 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if not self.data:
                 break
             raw_str = self.data
-            # print('[INFO] Receive message: ' + raw_str)
+            # print(self.request == clients[0])
+            print('[INFO] Receive message: ' + raw_str)
 
             elems = raw_str.split(',')
 
-            if sp_pose != None:
-                sp_pose.pose.position = Point(x=float(elems[0]), y=float(elems[1]), z=float(elems[2]))
-                sp_pose.pose.orientation.x = float(elems[3])
-                sp_pose.pose.orientation.y = float(elems[4])
-                sp_pose.pose.orientation.z = float(elems[5])
-                sp_pose.pose.orientation.w = float(elems[6])
-                # print(sp_pose.pose)
+            if len(elems[0]) == 0 or len(elems[1]) == 0 or len(elems[2]) == 0 or len(elems[3]) == 0 or len(elems[4]) == 0 or len(elems[5]) == 0:
+                continue
 
-            
+            if self.request == clients[0]:
+                if uav1_sp_pose != None:
+                    uav1_sp_pose.pose.position = Point(x=float(elems[0]), y=float(elems[1]), z=float(elems[2]))
+                    # uav1_sp_pose.pose.position = Point(0, 0, 1.1)
 
-            #self.feedback_data = ('Recieved').encode('UTF-8')
-            #self.feedback_data = json.dumps(pose).encode('UTF-8')
+                    r = float(elems[3]) / 180 * 3.1415
+                    p = float(elems[4]) / 180 * 3.1415
+                    y = float(elems[5]) / 180 * 3.1415
+
+                    q = quaternion_from_euler(0, 0, y)
+                    
+                    uav1_sp_pose.pose.orientation.x = q[0]
+                    uav1_sp_pose.pose.orientation.y = q[1]
+                    uav1_sp_pose.pose.orientation.z = q[2]
+                    uav1_sp_pose.pose.orientation.w = q[3]
+
 
     def finish(self):
         print('[INFO] Client connection lost.')
@@ -126,47 +148,64 @@ class TCPHandler(socketserver.BaseRequestHandler):
         print('[INFO] Client removed.')
         clients.remove(self.request)
 
-def send_pose():
-    self.feedback_data = (get_pose_str()).encode('UTF-8')
-    self.request.sendall(self.feedback_data)
-    unity_timer = threading.Timer(2.0, hello, ["Hawk"])
-    unity_timer.start()
+# ROS -> UNITY
+def get_pose_str(index):
+    global uav1_position, uav2_position, uav1_orientation, uav2_orientation
 
-def get_pose_str():
-    global position, orientation
-    pose_str = str(position[0]) + ',' + str(position[1]) + ',' + str(position[2]) + ',' + str(orientation[0]) + ',' + str(orientation[1]) + ',' + str(orientation[2]) + ',' + str(orientation[3])
+    pose_str_arr = []
+    if index == 0:
+        pose_str_arr.append(str(uav1_position[0]))
+        pose_str_arr.append(str(uav1_position[1]))
+        pose_str_arr.append(str(uav1_position[2]))
+
+        # Default ROS convention (r, p, y) = (x, y, z)
+        # See Quadcopter AR Wiki
+        (x, y, z) = euler_from_quaternion(uav1_orientation)
+
+        x = x * 180 / 3.1415
+        y = y * 180 / 3.1415
+        z = z * 180 / 3.1415
+
+        # SIMULATION
+        # NO TRANSFORMATION SHOULD BE APPLIED HERE
+        pose_str_arr.append(str(x))
+        pose_str_arr.append(str(y))
+        pose_str_arr.append(str(z))
+
+
+    pose_str = ','.join(pose_str_arr)
+    pose_str += ','
+
     return pose_str
 
 def timer_callback(event):
     global clients
     if len(clients) > 0:
-        feedback_data = (get_pose_str()).encode('UTF-8')
         try:
-            clients[0].sendall(feedback_data)
-        except:
-            print("[ERROR] Connection glitch. (handled)")
+            clients[0].send((get_pose_str(0)).encode('UTF-8'))
 
-def sp_timer_callback(event):
-    global sp_pose
-    # print(sp_pose.pose)
+        except Exception as e:
+            print("[ERROR] Connection glitch. (Message is not sent to Unity)" + e)
+
+def uav1_sp_timer_callback(event):
+    global uav1_sp_pose
+
     pos_pub = SP.get_pub_position_local(queue_size=10)
+    if uav1_sp_pose != None:
+        uav1_sp_pose.header.stamp = rospy.get_rostime()
+        # sp_pose.pose.position = Point(x=px, y=py, z=pz)
+        # eu = euler_from_quaternion((uav1_sp_pose.pose.orientation.x, uav1_sp_pose.pose.orientation.y, uav1_sp_pose.pose.orientation.z, uav1_sp_pose.pose.orientation.w))
+        # q = quaternion_from_euler(0, 0, eu[2])
+        uav1_sp_pose.pose.orientation = Quaternion(uav1_sp_pose.pose.orientation.x, uav1_sp_pose.pose.orientation.y, uav1_sp_pose.pose.orientation.z, uav1_sp_pose.pose.orientation.w)
+        print("publishing")
 
-    sp_pose.header.stamp = rospy.get_rostime()
-    # sp_pose.pose.position = Point(x=px, y=py, z=pz)
-    eu = euler_from_quaternion((sp_pose.pose.orientation.x, sp_pose.pose.orientation.y, sp_pose.pose.orientation.z, sp_pose.pose.orientation.w))
-    q = quaternion_from_euler(0, 0, -eu[2])
-    sp_pose.pose.orientation = Quaternion(*q)
-    
-    print(sp_pose.pose)
-
-    pos_pub.publish(sp_pose)
-
+        pos_pub.publish(uav1_sp_pose)
 
 
 if __name__=="__main__":
     # in_topic = ""
-    #in_topic = "/vrpn_client_node/solo/pose"
-    #out_topic = "/mavros/mocap/pose"
+    # in_topic = "/vrpn_client_node/solo/pose"
+    # out_topic = "/mavros/mocap/pose"
     
     # Server config
     host = ''
@@ -199,16 +238,18 @@ if __name__=="__main__":
 
 
 
-    time_sub = rospy.Subscriber("/mavlink/from", Mavlink, time_callback)
-    solo_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, solo_pose_callback)
+    uav1_time_sub = rospy.Subscriber("/mavlink/from", Mavlink, uav1_time_callback)
+    # uav1_pose_sub = rospy.Subscriber("/vrpn_client_node/solo/pose" , PoseStamped, uav1_pose_callback)
+    uav1_pose_sub = rospy.Subscriber("/mavros/local_position/pose" , PoseStamped, uav1_pose_callback)
 
-    print("[INFO] Waiting for MAVLink connection.")
-    print("      (If no response, please run: roslaunch mavros apm.launch)")
 
-    while secs is None:
-        pass
+    # print("[INFO] Waiting for MAVLink connection.")
+    # print("      (If no response, please run: roslaunch mavros apm.launch)")
 
-    print("[INFO] MAVLink Connection established.")
+    # while uav1_secs is None:
+    #     pass
+
+    print("[INFO] UAV 1 MAVLink Connection established.")
 
     print("[INFO] Drone pose subscribed.")
 
